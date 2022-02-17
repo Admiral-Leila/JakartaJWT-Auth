@@ -1,0 +1,8 @@
+com\lunasphere\testee\auth\RequiresJwt.class
+com\lunasphere\testee\HelloResource.class
+com\lunasphere\testee\auth\JwtAuthorizationFilter.class
+com\lunasphere\testee\auth\JwtRoles.class
+com\lunasphere\testee\auth\web\JwtAuthenticationWebFilter.class
+com\lunasphere\testee\auth\JwtUtil.class
+com\lunasphere\testee\auth\JwtContext.class
+com\lunasphere\testee\HelloApplication.class

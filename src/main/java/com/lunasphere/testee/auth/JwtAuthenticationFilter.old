@@ -1,0 +1,62 @@
+package com.lunasphere.testee.auth;
+
+
+import com.auth0.jwt.exceptions.JWTVerificationException;
+
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.Provider;
+import java.io.IOException;
+import java.net.URI;
+
+@Provider
+@Priority(Priorities.AUTHENTICATION)
+@RequiresJwt
+public class JwtAuthenticationFilter implements ContainerRequestFilter {
+    public static String extractToken(ContainerRequestContext ctx) {
+        String token = ctx.getHeaderString(HttpHeaders.AUTHORIZATION);
+
+        if (token != null) {
+            token = token.replaceFirst("Bearer ", "");
+        }
+
+        return token;
+    }
+
+    @Override
+    public void filter(ContainerRequestContext ctx) throws IOException {
+//        ctx.getRequest().
+        System.out.println("JWT Secured Endpoint Accessed - Checking for token...");
+
+        String jwt = extractToken(ctx);
+
+        JwtUtil util = new JwtUtil();
+
+        if (jwt != null) {
+            System.out.println("Token found! - Decoding...");
+            try {
+                JwtContext newSecurityCtx = util.decode(jwt);
+                newSecurityCtx.setSecure(ctx.getSecurityContext().isSecure());
+
+                ctx.setSecurityContext(newSecurityCtx);
+
+                return;
+            } catch (JWTVerificationException ex) {
+                System.err.println("Token invalid! - Error: " + ex.getMessage());
+            }
+
+            // The token provided was not valid in some way, UNAUTHORISED response.
+            ctx.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+        }
+
+        // There isn't a token!! The user probably didn't mean to go here?
+        // Redirect to the login page.
+        ctx.abortWith(
+                Response.seeOther(URI.create("/login.html")).build()
+        );
+    }
+}
